@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { Cpu, Server, Network, Activity, BookOpen, ExternalLink, ArrowRight, Microchip, Layers, MemoryStick, Database, Plug, Link, Zap, ShieldAlert, CheckCircle, Terminal, HardDrive, Cpu as MicrochipIcon, PenTool } from 'lucide-react';
+import { Cpu, Server, Network, Activity, BookOpen, ExternalLink, ArrowRight, Layers, MemoryStick, Database, Plug, Link, Zap, ShieldAlert, CheckCircle, Terminal, HardDrive, PenTool } from 'lucide-react';
+const Microchip = Cpu;
+const MicrochipIcon = Cpu;
 
 // --- Reusable Components ---
 
