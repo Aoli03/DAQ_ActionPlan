@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
-import { Cpu, Server, Network, Activity, BookOpen, ExternalLink, ArrowRight, Layers, MemoryStick, Database, Plug, Link, Zap, ShieldAlert, CheckCircle, Terminal, HardDrive, PenTool } from 'lucide-react';
-const Microchip = Cpu;
-const MicrochipIcon = Cpu;
+import { Cpu, Server, Network, Activity, BookOpen, ExternalLink, ArrowRight, Microchip, Layers, MemoryStick, Database, Plug, Link, Zap, ShieldAlert, CheckCircle, Terminal, HardDrive, Cpu as MicrochipIcon, PenTool, GitMerge, XCircle } from 'lucide-react';
 
 // --- Reusable Components ---
 
@@ -62,12 +60,13 @@ const BlockDiagram = ({ title, nodes }) => (
 // --- Main App Component ---
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('eeprom');
+  const [activeTab, setActiveTab] = useState('analysis');
 
   const tabs = [
     { id: 'zedboard', label: 'ZedBoard (Zynq-7000)', icon: <Layers className="w-4 h-4 mr-2" /> },
     { id: 'zcu102', label: 'ZCU102 (UltraScale+)', icon: <Cpu className="w-4 h-4 mr-2" /> },
     { id: 'projects', label: 'Design Strategy & Projects', icon: <BookOpen className="w-4 h-4 mr-2" /> },
+    { id: 'analysis', label: 'Repo Code Analysis', icon: <GitMerge className="w-4 h-4 mr-2" /> },
     { id: 'fmc', label: 'VITA 57.1 Pinouts', icon: <Plug className="w-4 h-4 mr-2" /> },
     { id: 'signal', label: '1V Logic & Signal Integrity', icon: <Zap className="w-4 h-4 mr-2" /> },
     { id: 'eeprom', label: 'IPMI EEPROM / VADJ', icon: <HardDrive className="w-4 h-4 mr-2" /> },
@@ -104,6 +103,96 @@ export default function App() {
 
         {/* Main Content Area */}
         <main className="flex-1 min-w-0">
+          
+          {/* ----------------- CODE ANALYSIS TAB ----------------- */}
+          {activeTab === 'analysis' && (
+            <div className="space-y-6 animate-fadeIn">
+              <div className="bg-slate-900 rounded-lg p-6 border border-slate-800 shadow-xl">
+                <div className="flex items-center justify-between mb-6 border-b border-slate-800 pb-4">
+                  <h2 className="text-2xl font-bold text-white flex items-center">
+                    <GitMerge className="w-6 h-6 mr-3 text-blue-500" /> Wangshuoleon DAQ Repo Analysis
+                  </h2>
+                </div>
+                
+                <p className="text-slate-300 mb-8 leading-relaxed">
+                  The target repository (<code>A-high-speed-data-acquisition-framework</code>) implements a baremetal C interrupt-driven Scatter-Gather DMA loop. While the memory-mapping topology is structurally sound, it lacks the physical layer components necessary to capture a 100MHz source-synchronous 1.8V bus, and requires an immediate platform upgrade to run on the ZCU102.
+                </p>
+
+                <div className="grid md:grid-cols-2 gap-6">
+                  
+                  {/* Keep Section */}
+                  <div className="bg-slate-800/50 p-5 rounded-lg border border-emerald-500/30">
+                    <h3 className="text-lg font-bold text-emerald-400 flex items-center mb-4">
+                      <CheckCircle className="w-5 h-5 mr-2" /> Architectural Elements to Keep
+                    </h3>
+                    
+                    <div className="space-y-4">
+                      <div className="bg-slate-900 p-4 rounded border border-slate-700">
+                        <h4 className="text-slate-200 font-mono text-sm mb-2 text-emerald-300">trigger_unit.v</h4>
+                        <p className="text-sm text-slate-400">
+                          <strong>Purpose:</strong> AXI4-Stream Packetization FSM.<br/>
+                          <strong>Why Keep It:</strong> Raw ADC logic has no concept of packets. This module wraps your continuous 3-bit data into standard <code>TVALID</code> and asserts <code>TLAST</code> after $N$ samples. <code>TLAST</code> is strictly required by the AXI DMA block to trigger the S2MM (Stream-to-Memory-Map) receive interrupt in the processor. This fulfills your requirement for "a way to turn it on and off."
+                        </p>
+                      </div>
+
+                      <div className="bg-slate-900 p-4 rounded border border-slate-700">
+                        <h4 className="text-slate-200 font-mono text-sm mb-2 text-emerald-300">ISR.c & SCU_GIC.c</h4>
+                        <p className="text-sm text-slate-400">
+                          <strong>Purpose:</strong> Hardware Interrupt Routing.<br/>
+                          <strong>Why Keep It:</strong> At 100MHz, polling the DMA registers will stall the ARM core. This code correctly registers the AXI DMA interrupt ID with the ARM Generic Interrupt Controller (GIC), allowing the processor to sleep or process LwIP packets until a chunk of DDR memory is fully populated by the PL.
+                        </p>
+                      </div>
+                      
+                      <div className="bg-slate-900 p-4 rounded border border-slate-700">
+                        <h4 className="text-slate-200 font-mono text-sm mb-2 text-emerald-300">System.bd (DMA Topology)</h4>
+                        <p className="text-sm text-slate-400">
+                          <strong>Purpose:</strong> Scatter-Gather DMA mapping.<br/>
+                          <strong>Why Keep It:</strong> The block design correctly routes the AXI DMA S2MM port to the High-Performance (HP) slave ports on the processor. Do not use the General Purpose (GP) ports; they cannot handle continuous burst writes.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Discard / Rewrite Section */}
+                  <div className="bg-slate-800/50 p-5 rounded-lg border border-red-500/30">
+                    <h3 className="text-lg font-bold text-red-400 flex items-center mb-4">
+                      <XCircle className="w-5 h-5 mr-2" /> Elements to Discard or Overhaul
+                    </h3>
+                    
+                    <div className="space-y-4">
+                      <div className="bg-slate-900 p-4 rounded border border-slate-700 relative overflow-hidden">
+                        <div className="absolute top-0 right-0 bg-red-600 text-white text-[10px] font-bold px-2 py-1 uppercase rounded-bl">Missing</div>
+                        <h4 className="text-slate-200 font-mono text-sm mb-2 text-red-300">PL Front-End (ISERDES / IDELAY)</h4>
+                        <p className="text-sm text-slate-400">
+                          <strong>The Problem:</strong> The repo directly routes parallel logic into the FSM. At 100MHz (5ns UI), trace delay and PVT shifts will cause timing violations.<br/>
+                          <strong>The Fix:</strong> You must insert Xilinx <code>IDELAYE2/E3</code> and <code>ISERDESE2/E3</code> primitives <em>before</em> the <code>trigger_unit.v</code> block. Use the forwarded clock from your IC to clock a <code>BUFIO/BUFR</code> (ZedBoard) or <code>BUFGCE_DIV</code> (ZCU102) to safely transition the data into the fabric clock domain.
+                        </p>
+                      </div>
+
+                      <div className="bg-slate-900 p-4 rounded border border-slate-700">
+                        <h4 className="text-slate-200 font-mono text-sm mb-2 text-red-300">System_processing_system7_0_0</h4>
+                        <p className="text-sm text-slate-400">
+                          <strong>The Problem:</strong> This IP block is exclusively for the Zynq-7000 (ZedBoard).<br/>
+                          <strong>The Fix:</strong> For the ZCU102, you must delete this block and instantiate the <code>Zynq UltraScale+ MPSoC</code> IP. The MPSoC requires vastly different DDR4 and AXI coherency port (CCI) configurations. AXI Interconnects should also be replaced with AXI SmartConnects to handle 128-bit/256-bit wide data buses.
+                        </p>
+                      </div>
+
+                      <div className="bg-slate-900 p-4 rounded border border-slate-700">
+                        <h4 className="text-slate-200 font-mono text-sm mb-2 text-red-300">main.c (Baremetal Output)</h4>
+                        <p className="text-sm text-slate-400">
+                          <strong>The Problem:</strong> The provided <code>main.c</code> appears to rely on baremetal UART or basic memory dumps, not a full network stack.<br/>
+                          <strong>The Fix:</strong> You must integrate the LwIP library. In the DMA Rx Interrupt handler, instead of just printing "Done", you need to pass the memory pointer to a `pbuf` struct, and call `udp_send()` to blast the raw gigabit payload to your MATLAB host's listening IP port.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ... [Rest of the existing tabs: zedboard, zcu102, projects, fmc, signal, eeprom] ... */}
           
           {/* ----------------- ZEDBOARD TAB ----------------- */}
           {activeTab === 'zedboard' && (
@@ -202,7 +291,6 @@ export default function App() {
                 </p>
 
                 <div className="space-y-8">
-                  
                   {/* Step 1 */}
                   <div className="relative pl-8 border-l-2 border-blue-500">
                     <div className="absolute w-4 h-4 bg-blue-500 rounded-full -left-[9px] top-1"></div>
@@ -266,7 +354,6 @@ export default function App() {
                       </p>
                     </div>
                   </div>
-
                 </div>
               </div>
             </div>
