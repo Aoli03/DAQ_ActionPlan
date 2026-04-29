@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Cpu, Server, Network, Activity, BookOpen, ExternalLink, ArrowRight, Layers, MemoryStick, Database, Plug, Link, Zap, ShieldAlert, CheckCircle, Terminal, HardDrive, PenTool, GitMerge, XCircle } from 'lucide-react';
+import { Cpu, Server, Network, Activity, BookOpen, ExternalLink, ArrowRight, Layers, MemoryStick, Database, Plug, Link, Zap, ShieldAlert, CheckCircle, Terminal, HardDrive, PenTool, GitMerge, XCircle, FileText } from 'lucide-react';
 const Microchip = Cpu;
 const MicrochipIcon = Cpu;
+import ReportPdfTab from './src/components/ReportPdfTab';
 
 // --- Reusable Components ---
 
@@ -72,6 +73,7 @@ export default function App() {
     { id: 'fmc', label: 'VITA 57.1 Pinouts', icon: <Plug className="w-4 h-4 mr-2" /> },
     { id: 'signal', label: '1V Logic & Signal Integrity', icon: <Zap className="w-4 h-4 mr-2" /> },
     { id: 'eeprom', label: 'IPMI EEPROM / VADJ', icon: <HardDrive className="w-4 h-4 mr-2" /> },
+    { id: 'report', label: 'Full Research Report', icon: <FileText className="w-4 h-4 mr-2" /> },
   ];
 
   return (
@@ -724,6 +726,8 @@ export default function App() {
               </div>
             </div>
           )}
+
+          {activeTab === 'report' && <ReportPdfTab />}
 
         </main>
       </div>
