@@ -3,6 +3,7 @@ import { Cpu, Server, Network, Activity, BookOpen, ExternalLink, ArrowRight, Lay
 const Microchip = Cpu;
 const MicrochipIcon = Cpu;
 import ReportPdfTab from './src/components/ReportPdfTab';
+import NvmeStorageTab from './src/components/NvmeStorageTab';
 
 // --- Reusable Components ---
 
@@ -74,6 +75,7 @@ export default function App() {
     { id: 'signal', label: '1V Logic & Signal Integrity', icon: <Zap className="w-4 h-4 mr-2" /> },
     { id: 'eeprom', label: 'IPMI EEPROM / VADJ', icon: <HardDrive className="w-4 h-4 mr-2" /> },
     { id: 'report', label: 'Full Research Report', icon: <FileText className="w-4 h-4 mr-2" /> },
+    { id: 'nvme', label: 'NVMe Storage Architecture', icon: <HardDrive className="w-4 h-4 mr-2" /> },
   ];
 
   return (
@@ -728,6 +730,7 @@ export default function App() {
           )}
 
           {activeTab === 'report' && <ReportPdfTab />}
+          {activeTab === 'nvme' && <NvmeStorageTab />}
 
         </main>
       </div>
